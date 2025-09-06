@@ -1,8 +1,11 @@
 from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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"
+    api_key=os.getenv("OPEN_ROUTER_API_KEY"),
 )
 
 print("🧠 PROMPTING TECHNIQUES DEMO\n")
@@ -10,15 +13,13 @@ print("=" * 60)
 
 
 examples = {
-
     # ========================================
     # 1. ZERO-SHOT: No examples, just ask
     # ========================================
     "zero_shot": {
         "prompt": "A bakery sells cupcakes for $2 each. If Sarah buys 7, how much does she spend?",
-        "explanation": "No guidance — model must infer how to answer."
+        "explanation": "No guidance — model must infer how to answer.",
     },
-
     # ========================================
     # 2. FEW-SHOT: Show examples before asking
     # ========================================
@@ -29,9 +30,8 @@ examples = {
 
                     Now calculate:
                     Item: Mug   | Price: $4 | Quantity: 6 | Total: ?""",
-        "explanation": "Model learns pattern from examples before applying it."
+        "explanation": "Model learns pattern from examples before applying it.",
     },
-
     # ========================================
     # 3. CHAIN-OF-THOUGHT (CoT): Think step-by-step
     # ========================================
@@ -41,9 +41,8 @@ examples = {
                     How many bottles are left at the end of the day?
 
                     Think step by step.""",
-        "explanation": "Encourages internal reasoning — 'show your work' for LLMs."
+        "explanation": "Encourages internal reasoning — 'show your work' for LLMs.",
     },
-
     # ========================================
     # 4. ReAct (Reason + Act): Simulate tool use
     # ========================================
@@ -55,8 +54,8 @@ examples = {
                     Observation: The Hubble Space Telescope was launched on April 24, 1990.
                     Thought: I found the answer.
                     Answer: April 24, 1990.""",
-        "explanation": "Combines reasoning (Thought) with actions (Action) — foundation for AI agents."
-    }
+        "explanation": "Combines reasoning (Thought) with actions (Action) — foundation for AI agents.",
+    },
 }
 
 # Run each example with clear labeling
@@ -64,14 +63,12 @@ for method, data in examples.items():
     print(f"\n🔹 TECHNIQUE: {method.upper()}")
     print(f"📝 Explanation: {data['explanation']}")
     print(f"💬 Prompt: {data['prompt']}")
-    
+
     try:
         response = client.chat.completions.create(
             model="openai/gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": data["prompt"]}
-            ],
-            max_tokens=150
+            messages=[{"role": "user", "content": data["prompt"]}],
+            max_tokens=150,
         )
         answer = response.choices[0].message.content
         print(f"✅ Model Response: {answer}")

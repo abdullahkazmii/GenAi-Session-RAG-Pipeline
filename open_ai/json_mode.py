@@ -1,10 +1,12 @@
 from openai import OpenAI
 import json
+import os
+from dotenv import load_dotenv
+
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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"
-    
+    api_key=os.getenv("OPEN_ROUTER_API_KEY"),
 )
 
 prompt = """
@@ -15,10 +17,8 @@ Respond in JSON format.
 
 response = client.chat.completions.create(
     model="openai/gpt-3.5-turbo",
-    messages=[
-        {"role": "user", "content": prompt}
-    ],
-    response_format={"type": "json_object"}
+    messages=[{"role": "user", "content": prompt}],
+    response_format={"type": "json_object"},
 )
 
 # Parse and print result
@@ -28,17 +28,13 @@ try:
 except Exception as e:
     print("Failed to parse JSON:", e)
     print("Raw output:", response.choices[0].message.content)
-    
-    
 
 
 ### Structured Response
 
 response = client.chat.completions.create(
     model="gpt-4o-mini",
-    messages=[
-        {"role": "user", "content": prompt}
-    ],
+    messages=[{"role": "user", "content": prompt}],
     response_format={
         "type": "json_schema",
         "json_schema": {
@@ -48,13 +44,13 @@ response = client.chat.completions.create(
                 "properties": {
                     "name": {"type": "string"},
                     "age": {"type": "integer"},
-                    "city": {"type": "string"}
+                    "city": {"type": "string"},
                 },
                 "required": ["name", "age", "city"],
-                "additionalProperties": False
-            }
-        }
-    }
+                "additionalProperties": False,
+            },
+        },
+    },
 )
 
 # Parse and print result
