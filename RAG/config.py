@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 
-load_dotenv()
+if not os.getenv("CLOUD_RUN_ENV"):
+    load_dotenv()
 
 OPENAI_MODEL = "gpt-4o"
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -32,9 +33,17 @@ SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
 
 def validate_config():
+    missing = []
     if not OPENAI_API_KEY:
-        print("OPENAI_API_KEY not found in environment variables")
-        print("Please add OPENAI_API_KEY to your .env file")
+        missing.append("OPENAI_API_KEY")
+    if not SERPER_API_KEY:
+        missing.append("SERPER_API_KEY")
+
+    if missing:
+        st.error(
+            f"❌ Missing environment variables: {', '.join(missing)}. \n\n"
+            f"👉 Please set them in Cloud Run Environment Variables or in a local `.env` file."
+        )
         return False, None, None
 
     return True, OPENAI_API_KEY, SERPER_API_KEY
