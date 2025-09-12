@@ -1,0 +1,17 @@
+# Core RAG System Dependencies
+streamlit>=1.28.0
+openai>=1.0.0
+chromadb>=0.4.0
+
+# Document Processing
+PyPDF2>=3.0.0
+youtube-transcript-api>=0.6.0
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+
+# Data Processing and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+#Rag Evaluation
+ragas>=0.1.0 
