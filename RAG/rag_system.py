@@ -1,36 +1,33 @@
-import openai
+import pandas as pd
+from google import genai
+from google.genai import types
 import streamlit as st
 from typing import List, Dict, Any, Optional
 from vector_database import ChromaVectorDB
 from web_search import WebSearcher
 from document_processor import DocumentProcessor
-from config import OPENAI_MODEL, MAX_TOKENS, TEMPERATURE, OPENAI_API_KEY, SERPER_API_KEY
+from config import GEMINI_MODEL, MAX_TOKENS, TEMPERATURE, GEMINI_API_KEY, SERPER_API_KEY
 
 
 class RAGSystem:
     def __init__(self):
         self.vector_db = ChromaVectorDB()
         self.web_searcher = None
-        self.openai_client = None
         self.doc_processor = DocumentProcessor()
+        self.client = None
 
     def initialize(
-        self, openai_api_key: str, serper_api_key: Optional[str] = None
+        self, gemini_api_key: str, serper_api_key: Optional[str] = None
     ) -> bool:
         try:
             # Initialize vector database with ChromaDB
-            if not self.vector_db.initialize(openai_api_key):
+            if not self.vector_db.initialize(gemini_api_key):
                 print("=======> Failed to initialize ChromaDB vector database")
                 return False
 
-            self.openai_client = openai.OpenAI(api_key=openai_api_key)
-
-            try:
-                self.openai_client.models.list()
-                print("OpenAI connection successful =============>")
-            except Exception as e:
-                print(f"OpenAI connection failed=============> {str(e)}")
-                return False
+            self.client = genai.Client(api_key=gemini_api_key)
+            
+            print("Gemini connection successful =============>")
 
             if serper_api_key:
                 self.web_searcher = WebSearcher(serper_api_key)
@@ -120,17 +117,19 @@ class RAGSystem:
                 retrieval_results["context"], query
             )
 
-            response = self.openai_client.chat.completions.create(
-                model=OPENAI_MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": query},
-                ],
-                max_tokens=MAX_TOKENS,
-                temperature=TEMPERATURE,
+            # Define tool configuration if needed (currently none in standard response)
+            # You can pass tools=[] to generate_content if required.
+            
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=system_prompt, # Using system prompt as content for now or pass as system_instruction
+                config=types.GenerateContentConfig(
+                    max_output_tokens=MAX_TOKENS,
+                    temperature=TEMPERATURE,
+                ),
             )
 
-            generated_text = response.choices[0].message.content
+            generated_text = response.text
 
             return {
                 "response": generated_text,

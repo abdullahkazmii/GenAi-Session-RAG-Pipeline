@@ -1,5 +1,5 @@
 import chromadb
-import openai
+from google import genai
 import streamlit as st
 import uuid
 from datetime import datetime
@@ -7,22 +7,21 @@ from typing import List, Dict, Any, Optional
 from config import (
     COLLECTION_NAME,
     SIMILARITY_SEARCH_RESULTS,
-    EMBEDDING_MODEL,
+    GEMINI_EMBEDDING_MODEL,
     DISTANCE_FUNCTION,
 )
 
 
 class ChromaVectorDB:
     def __init__(self):
-        self.openai_client = None
         self.chroma_client = None
         self.collection = None
+        self.client = None
 
-    def initialize(self, openai_api_key: str) -> bool:
+    def initialize(self, gemini_api_key: str) -> bool:
         try:
-            self.openai_client = openai.OpenAI(api_key=openai_api_key)
-            self.openai_client.models.list()
-
+            self.client = genai.Client(api_key=gemini_api_key)
+            
             # Initialize ChromaDB client with persistent storage
             self.chroma_client = chromadb.PersistentClient(path="chromadb_collections")
 
@@ -49,14 +48,12 @@ class ChromaVectorDB:
             if not text.strip():
                 return None
 
-            response = self.openai_client.embeddings.create(
-                model=EMBEDDING_MODEL, input=text, encoding_format="float"
+            result = self.client.models.embed_content(
+                model=GEMINI_EMBEDDING_MODEL,
+                contents=text,
+                config={"task_type": "RETRIEVAL_DOCUMENT"},
             )
-            # print(
-            #     "Generated embedding successfully =============>",
-            #     response.data[0].embedding,
-            # )
-            return response.data[0].embedding
+            return result.embeddings[0].values
 
         except Exception as e:
             st.error(f"Error generating embedding: {str(e)}")
@@ -113,14 +110,6 @@ class ChromaVectorDB:
                     f"==========> Successfully stored {processed_chunks} chunks in ChromaDB"
                 )
 
-                # with st.expander("Vector Database Details"):
-                #     st.info(f"""
-                #     **Vector Storage Complete:**
-                #     - Chunks processed: {processed_chunks}
-                #     - Embedding dimensions: 1536 (OpenAI text-embedding-3-small)
-                #     - Distance function: {DISTANCE_FUNCTION}
-                #     - Collection: {COLLECTION_NAME}
-                #     """)
                 return True
             else:
                 st.warning("No valid chunks were processed")

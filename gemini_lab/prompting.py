@@ -1,14 +1,13 @@
-from openai import OpenAI
+from google import genai
+from google.genai import types
 import os
 from dotenv import load_dotenv
 
+load_dotenv()
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPEN_ROUTER_API_KEY"),
-)
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-print("🧠 PROMPTING TECHNIQUES DEMO\n")
+print("PROMPTING TECHNIQUES\n")
 print("=" * 60)
 
 
@@ -58,21 +57,20 @@ examples = {
     },
 }
 
-# Run each example with clear labeling
 for method, data in examples.items():
-    print(f"\n🔹 TECHNIQUE: {method.upper()}")
-    print(f"📝 Explanation: {data['explanation']}")
-    print(f"💬 Prompt: {data['prompt']}")
+    print(f"Technique: {method.upper()}")
+    print(f"Explanation: {data['explanation']}")
+    print(f"Prompt: {data['prompt']}")
 
     try:
-        response = client.chat.completions.create(
-            model="openai/gpt-3.5-turbo",
-            messages=[{"role": "user", "content": data["prompt"]}],
-            max_tokens=150,
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=data["prompt"],
+            config=types.GenerateContentConfig(max_output_tokens=2000)
         )
-        answer = response.choices[0].message.content
-        print(f"✅ Model Response: {answer}")
+        answer = response.text
+        print(f"Model Response: {answer}")
     except Exception as e:
-        print(f"❌ Error: {e}")
-
+        print(f"Error: {e}")
+    
     print("-" * 60)

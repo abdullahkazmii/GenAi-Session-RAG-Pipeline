@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 from typing import List
 
-from config import validate_config, OPENAI_API_KEY, SERPER_API_KEY
+from config import validate_config, GEMINI_API_KEY, SERPER_API_KEY
 from rag_system import RAGSystem
 from rag_evaluation import RAGEvaluator
 from document_processor import DocumentProcessor
@@ -10,7 +10,7 @@ from document_processor import DocumentProcessor
 
 st.set_page_config(
     page_title="RAG System",
-    page_icon="🤖",
+    page_icon="",
     layout="wide",
 )
 
@@ -28,7 +28,7 @@ if "system_initialized" not in st.session_state:
 def initialize_system():
     """Initialize RAG system with environment variables"""
     try:
-        is_valid, openai_key, serper_key = validate_config()
+        is_valid, gemini_key, serper_key = validate_config()
 
         if not is_valid:
             return False
@@ -36,7 +36,7 @@ def initialize_system():
         if st.session_state.rag_system is None:
             st.session_state.rag_system = RAGSystem()
 
-        if st.session_state.rag_system.initialize(openai_key, serper_key):
+        if st.session_state.rag_system.initialize(gemini_key, serper_key):
             st.session_state.system_initialized = True
             return True
         else:
@@ -62,7 +62,7 @@ def main():
                 st.info("""
                 Create a `.env` file in your project directory with:
                 ```
-                OPENAI_API_KEY=your_openai_api_key_here
+                GEMINI_API_KEY=your_gemini_api_key_here
                 SERPER_API_KEY=your_serper_api_key_here
                 ```
                 """)
